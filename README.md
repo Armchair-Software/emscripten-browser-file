@@ -4,6 +4,8 @@ Header-only C++ library to receive files from, and offer files to, the browser t
 
 Intended for use in Emscripten code, this enables the user to "upload" files to your program using their native file selector, and to "download" files from your program to save to disk, as if they were interacting with a remote website filesystem.
 
+See also [tar_to_stream.h](https://github.com/Armchair-Software/tar_to_stream), to tarball multiple files in memory for a single download.
+
 ## Use cases:
 
 * Implement an "upload" function, that enables users to choose a file using their browser's native file selector - this file is read directly into your program's memory.
