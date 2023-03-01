@@ -11,6 +11,8 @@ using upload_handler = void(*)(std::string const&, std::string const&, std::stri
 void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr);
 void download(std::string const &filename, std::string const &mime_type, std::string_view buffer);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
 EM_JS(void, upload, (char const *accept_types, upload_handler callback, void *callback_data = nullptr), {
   /// Prompt the browser to open the file selector dialogue, and pass the file to the given handler
   /// Accept-types are in the format ".png,.jpeg,.jpg" as per https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept
@@ -39,12 +41,15 @@ EM_JS(void, upload, (char const *accept_types, upload_handler callback, void *ca
   file_selector.setAttribute('accept', UTF8ToString(accept_types));
   file_selector.click();
 });
+#pragma GCC diagnostic pop
 
 void upload(std::string const &accept_types, upload_handler callback, void *callback_data) {
   /// C++ wrapper for javascript upload call
   upload(accept_types.c_str(), callback, callback_data);
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
 EM_JS(void, download, (char const *filename, char const *mime_type, void const *buffer, size_t buffer_size), {
   /// Offer a buffer in memory as a file to download, specifying download filename and mime type
   var a = document.createElement('a');
@@ -52,6 +57,7 @@ EM_JS(void, download, (char const *filename, char const *mime_type, void const *
   a.href = URL.createObjectURL(new Blob([new Uint8Array(Module.HEAPU8.buffer, buffer, buffer_size)], {type: UTF8ToString(mime_type)}));
   a.click();
 });
+#pragma GCC diagnostic pop
 
 void download(std::string const &filename, std::string const &mime_type, std::string_view buffer) {
   /// C++ wrapper for javascript download call, accepting a string_view
