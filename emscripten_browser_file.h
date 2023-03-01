@@ -8,6 +8,9 @@ namespace emscripten_browser_file {
 
 using upload_handler = void(*)(std::string const&, std::string const&, std::string_view buffer, void*);
 
+void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr);
+void download(std::string const &filename, std::string const &mime_type, std::string_view buffer);
+
 EM_JS(void, upload, (char const *accept_types, upload_handler callback, void *callback_data = nullptr), {
   /// Prompt the browser to open the file selector dialogue, and pass the file to the given handler
   /// Accept-types are in the format ".png,.jpeg,.jpg" as per https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept
@@ -37,7 +40,7 @@ EM_JS(void, upload, (char const *accept_types, upload_handler callback, void *ca
   file_selector.click();
 });
 
-void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr) {
+void upload(std::string const &accept_types, upload_handler callback, void *callback_data) {
   /// C++ wrapper for javascript upload call
   upload(accept_types.c_str(), callback, callback_data);
 }
@@ -58,6 +61,8 @@ void download(std::string const &filename, std::string const &mime_type, std::st
 namespace {
 
 extern "C" {
+
+EMSCRIPTEN_KEEPALIVE int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data);
 
 EMSCRIPTEN_KEEPALIVE int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data) {
   /// Load a file - this function is called from javascript when the file upload is activated
