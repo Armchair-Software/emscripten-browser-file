@@ -4,16 +4,27 @@
 #include <string>
 #include <emscripten.h>
 
+#define _EM_JS_INLINE(ret, c_name, js_name, params, code)                          \
+  extern "C" {                                                                     \
+  ret c_name params EM_IMPORT(js_name);                                            \
+  EMSCRIPTEN_KEEPALIVE                                                             \
+  __attribute__((section("em_js"), aligned(1))) inline char __em_js__##js_name[] = \
+    #params "<::>" code;                                                           \
+  }
+
+#define EM_JS_INLINE(ret, name, params, ...) _EM_JS_INLINE(ret, name, name, params, #__VA_ARGS__)
+
+
 namespace emscripten_browser_file {
 
 using upload_handler = void(*)(std::string const&, std::string const&, std::string_view buffer, void*);
 
-void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr);
-void download(std::string const &filename, std::string const &mime_type, std::string_view buffer);
+inline void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr);
+inline void download(std::string const &filename, std::string const &mime_type, std::string_view buffer);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
-EM_JS(void, upload, (char const *accept_types, upload_handler callback, void *callback_data = nullptr), {
+EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, void *callback_data = nullptr), {
   /// Prompt the browser to open the file selector dialogue, and pass the file to the given handler
   /// Accept-types are in the format ".png,.jpeg,.jpg" as per https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept
   /// Upload handler callback signature is:
@@ -43,14 +54,14 @@ EM_JS(void, upload, (char const *accept_types, upload_handler callback, void *ca
 });
 #pragma GCC diagnostic pop
 
-void upload(std::string const &accept_types, upload_handler callback, void *callback_data) {
+inline void upload(std::string const &accept_types, upload_handler callback, void *callback_data) {
   /// C++ wrapper for javascript upload call
   upload(accept_types.c_str(), callback, callback_data);
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
-EM_JS(void, download, (char const *filename, char const *mime_type, void const *buffer, size_t buffer_size), {
+EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void const *buffer, size_t buffer_size), {
   /// Offer a buffer in memory as a file to download, specifying download filename and mime type
   var a = document.createElement('a');
   a.download = UTF8ToString(filename);
@@ -59,7 +70,7 @@ EM_JS(void, download, (char const *filename, char const *mime_type, void const *
 });
 #pragma GCC diagnostic pop
 
-void download(std::string const &filename, std::string const &mime_type, std::string_view buffer) {
+inline void download(std::string const &filename, std::string const &mime_type, std::string_view buffer) {
   /// C++ wrapper for javascript download call, accepting a string_view
   download(filename.c_str(), mime_type.c_str(), buffer.data(), buffer.size());
 }
@@ -68,9 +79,9 @@ namespace {
 
 extern "C" {
 
-EMSCRIPTEN_KEEPALIVE int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data);
+EMSCRIPTEN_KEEPALIVE inline int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data);
 
-EMSCRIPTEN_KEEPALIVE int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data) {
+EMSCRIPTEN_KEEPALIVE inline int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data) {
   /// Load a file - this function is called from javascript when the file upload is activated
   callback(filename, mime_type, {buffer, buffer_size}, callback_data);
   return 1;
