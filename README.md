@@ -114,3 +114,7 @@ auto main()->int {
 ```
 
 You can use this to pass shared state, or any other data to the callback function - for example an instance of a class whose member function should be called to deal with the received data.
+
+## Building
+
+Building with emscripten will require you to pass, if you do not already do so, `-sEXPORTED_RUNTIME_METHODS=[ccall]` at the link stage.
