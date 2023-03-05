@@ -24,11 +24,12 @@ inline void download(std::string const &filename, std::string const &mime_type, 
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
-EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, void *callback_data = nullptr), {
+EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, void *callback_data), {
   /// Prompt the browser to open the file selector dialogue, and pass the file to the given handler
   /// Accept-types are in the format ".png,.jpeg,.jpg" as per https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept
   /// Upload handler callback signature is:
-  ///   void my_handler(std::string const filename, std::string const &mime_type, std::string_view buffer, void *callback_data = nullptr);
+  ///   void my_handler(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data = nullptr);
+  globalThis.open_file_callback_data = callback_data;
   globalThis.open_file = function(e) {
     const file_reader = new FileReader();
     file_reader.onload = (event) => {
@@ -37,8 +38,7 @@ EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, v
       const data_ptr = Module._malloc(num_bytes);
       const data_on_heap = new Uint8Array(Module.HEAPU8.buffer, data_ptr, num_bytes);
       data_on_heap.set(uint8Arr);
-      var callback_data = callback_data || 0;
-      const res = Module.ccall('load_file_return', 'number', ['string', 'string', 'number', 'number', 'number', 'number'], [event.target.filename, event.target.mime_type, data_on_heap.byteOffset, uint8Arr.length, callback, callback_data]);
+      Module.ccall('upload_file_return', 'number', ['string', 'string', 'number', 'number', 'number', 'number'], [event.target.filename, event.target.mime_type, data_on_heap.byteOffset, uint8Arr.length, callback, open_file_callback_data]);
       Module._free(data_ptr);
     };
     file_reader.filename = e.target.files[0].name;
@@ -79,9 +79,9 @@ namespace {
 
 extern "C" {
 
-EMSCRIPTEN_KEEPALIVE inline int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data);
+EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data);
 
-EMSCRIPTEN_KEEPALIVE inline int load_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data) {
+EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data) {
   /// Load a file - this function is called from javascript when the file upload is activated
   callback(filename, mime_type, {buffer, buffer_size}, callback_data);
   return 1;
