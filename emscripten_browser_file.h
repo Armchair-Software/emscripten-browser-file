@@ -14,13 +14,16 @@
 
 #define EM_JS_INLINE(ret, name, params, ...) _EM_JS_INLINE(ret, name, name, params, #__VA_ARGS__)
 
-
 namespace emscripten_browser_file {
+
+/////////////////////////////////// Interface //////////////////////////////////
 
 using upload_handler = void(*)(std::string const&, std::string const&, std::string_view buffer, void*);
 
 inline void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr);
 inline void download(std::string const &filename, std::string const &mime_type, std::string_view buffer);
+
+///////////////////////////////// Implementation ///////////////////////////////
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
