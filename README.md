@@ -1,6 +1,6 @@
 # Emscripten Browser File Library
 
-Header-only C++ library to receive files from, and offer files to, the browser the Emscripten program is running in.
+Header-only C++ library to receive files from, and offer files to, the browser the Emscripten program is running in.  Compact implementation in a single header file.
 
 Intended for use in Emscripten code, this enables the user to "upload" files to your program using their native file selector, and to "download" files from your program to save to disk, as if they were interacting with a remote website filesystem.
 
