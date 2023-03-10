@@ -125,4 +125,7 @@ Necessary emsripten link flags:
 
 ## Other useful libraries
 
-You may also find the [Emscripten Browser Clipboard Library](https://github.com/Armchair-Software/emscripten-browser-clipboard) useful - this allows easy handling of browser copy and paste events in your C++ code.
+You may also find the following Emscripten helper libraries useful:
+
+- [Emscripten Browser Clipboard Library](https://github.com/Armchair-Software/emscripten-browser-clipboard) - easy handling of browser copy and paste events in your C++ code.
+- [Emscripten Browser Cursor](https://github.com/Armchair-Software/emscripten-browser-cursor) - easy manipulation of browser mouse pointer cursors from C++.
