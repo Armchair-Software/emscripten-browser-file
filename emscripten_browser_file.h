@@ -36,9 +36,8 @@ EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, v
     const file_reader = new FileReader();
     file_reader.onload = (event) => {
       const uint8Arr = new Uint8Array(event.target.result);
-      const num_bytes = uint8Arr.length * uint8Arr.BYTES_PER_ELEMENT;
-      const data_ptr = Module["_malloc"](num_bytes);
-      const data_on_heap = new Uint8Array(Module["HEAPU8"].buffer, data_ptr, num_bytes);
+      const data_ptr = Module["_malloc"](uint8Arr.length);
+      const data_on_heap = new Uint8Array(Module["HEAPU8"].buffer, data_ptr, uint8Arr.length);
       data_on_heap.set(uint8Arr);
       Module["ccall"]('upload_file_return', 'number', ['string', 'string', 'number', 'number', 'number', 'number'], [event.target.filename, event.target.mime_type, data_on_heap.byteOffset, uint8Arr.length, callback, callback_data]);
       Module["_free"](data_ptr);
