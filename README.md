@@ -49,7 +49,7 @@ emscripten_browser_file::download(
 For files containing binary data, you will usually want to use the MIME type `application/octet-stream`.
 
 ### Upload
-From the user's point of view, the `upload` function acts as if the user is uploading a file to a remote website.  In this case, the file is loaded into a buffer in memory (referred to by a `std::string_view`) that is accessible to a C++ callback function you define.
+From the user's point of view, the `upload` function acts as if the user is uploading a file to a remote website.  In this case, the file is loaded into a buffer in memory (referred to by a `std::string_view`) that is accessible to a C++ callback function you define. If the user cancels the file dialog without uploading a file, the callback function will be called with the empty `std::string_view`.
 
 #### Example
 
