@@ -1,5 +1,4 @@
-#ifndef EMSCRIPTEN_UPLOAD_FILE_H_INCLUDED
-#define EMSCRIPTEN_UPLOAD_FILE_H_INCLUDED
+#pragma once
 
 #include <string>
 #include <string_view>
@@ -129,5 +128,3 @@ EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char co
 }
 
 }
-
-#endif // EMSCRIPTEN_UPLOAD_FILE_H_INCLUDED
