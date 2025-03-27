@@ -119,7 +119,7 @@ You can use this to pass shared state, or any other data to the callback functio
 
 Necessary emsripten link flags:
 
-- Building with emscripten will require you to pass, if you do not already do so, `-sEXPORTED_RUNTIME_METHODS=[ccall]` at the link stage.
+- Building with emscripten will require you to pass, if you do not already do so, `-sEXPORTED_RUNTIME_METHODS=[ccall]` and `-sEXPORTED_FUNCTIONS=[_main,_malloc,_free]` at the link stage.
 - This uses dynamic memory allocation, so you need `-sALLOW_MEMORY_GROWTH=1` at the link stage.
 - Depending on your optimisation settings, the compiler may remove JS `malloc` and `free` functions (this happens with `-O3` at the time of writing, see [emscripten issue 6882](https://github.com/emscripten-core/emscripten/issues/6882)).  This can be avoided by explicitly exporting those functions: add `-sEXPORTED_FUNCTIONS=[_main,_malloc,_free]` at the link stage.
 
