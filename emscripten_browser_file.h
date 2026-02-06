@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <string_view>
 #include <emscripten.h>
@@ -18,7 +19,15 @@ namespace emscripten_browser_file {
 
 /////////////////////////////////// Interface //////////////////////////////////
 
-using upload_handler = void(*)(std::string const&, std::string const&, std::string_view buffer, void*);
+struct buffer_deleter
+{
+	// Apparently, using C++'s 'free' on a buffer allocated with JavaScript's 'Module["_malloc"]' is safe:
+	// https://stackoverflow.com/questions/34050275/emscripten-malloc-and-free-across-js-and-c
+	void operator()(char* const pointer) { std::free(pointer); }
+};
+
+using buffer_unique_ptr = std::unique_ptr<char, buffer_deleter>;
+using upload_handler = void(*)(std::string const&, std::string const&, buffer_unique_ptr &&buffer, size_t buffer_size, void*);
 
 inline void upload(std::string const &accept_types, upload_handler callback, void *callback_data = nullptr);
 inline void download(std::string const &filename, std::string const &mime_type, std::string_view buffer);
@@ -40,7 +49,7 @@ EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, v
       const data_on_heap = new Uint8Array(Module["HEAPU8"].buffer, data_ptr, uint8Arr.length);
       data_on_heap.set(uint8Arr);
       Module["ccall"]('upload_file_return', 'number', ['string', 'string', 'number', 'number', 'number', 'number'], [event.target.filename, event.target.mime_type, data_on_heap.byteOffset, uint8Arr.length, callback, callback_data]);
-      Module["_free"](data_ptr);
+      //Module["_free"](data_ptr); // Freeing is handled by the buffer_unique_ptr class.
     };
     file_reader.filename = e.target.files[0].name;
     file_reader.mime_type = e.target.files[0].type;
@@ -108,18 +117,7 @@ EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char co
 
 EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char const *mime_type, char *buffer, size_t buffer_size, upload_handler callback, void *callback_data) {
   /// Load a file - this function is called from javascript when the file upload is activated
-
-  /// The file was not uploaded.
-  /// We must process this case separately because std::string_view(nullptr, 0) results in UB.
-  /// <The behavior is undefined if [s, s + count) is not a valid range
-  /// (even though the constructor may not access any of the elements of this range)>
-  /// https://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view
-  if (! buffer || buffer_size == 0) {
-    callback(filename, mime_type, std::string_view(), callback_data);
-    return 1;
-  }
-  /// Ok
-  callback(filename, mime_type, {buffer, buffer_size}, callback_data);
+  callback(filename, mime_type, buffer_unique_ptr(buffer), buffer_size, callback_data);
   return 1;
 }
 
