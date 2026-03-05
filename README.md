@@ -49,14 +49,14 @@ emscripten_browser_file::download(
 For files containing binary data, you will usually want to use the MIME type `application/octet-stream`.
 
 ### Upload
-From the user's point of view, the `upload` function acts as if the user is uploading a file to a remote website.  In this case, the file is loaded into a buffer in memory (referred to by a `std::string_view`) that is accessible to a C++ callback function you define. If the user cancels the file dialog without uploading a file, the callback function will be called with the empty `std::string_view`.
+From the user's point of view, the `upload` function acts as if the user is uploading a file to a remote website.  In this case, the file is loaded into a buffer in memory (referred to by a `buffer_unique_ptr`) that is accessible to a C++ callback function you define. If the user cancels the file dialog without uploading a file, the callback function will be called with a null `buffer_unique_ptr` and a `buffer_size` of 0.
 
 #### Example
 
 ```cpp
 #include <emscripten_browser_file.h>
 
-void handle_upload_file(std::string const &filename, std::string const &mime_type, std::string_view buffer, void*) {
+void handle_upload_file(std::string const &filename, std::string const &mime_type, emscripten_browser_file::buffer_unique_ptr &&buffer, size_t buffer_size, void*) {
   // define a handler to process the file
   // ...
 }
@@ -84,7 +84,8 @@ The callback must have the following signature:
   void handle_upload_file(
     std::string const &filename,  // the filename of the file the user selected
     std::string const &mime_type, // the MIME type of the file the user selected, for example "image/png"
-    std::string_view buffer,      // the file's content is exposed in this string_view - access the data with buffer.data() and size with buffer.size().
+    buffer_unique_ptr &&buffer,   // the file's content, exposed as a buffer of 'char's
+    size_t buffer_size,           // the total number of bytes in the file
     void *callback_data = nullptr // optional callback data - identical to whatever you passed to handle_upload_file()
   );
 ```
@@ -97,15 +98,15 @@ The callback can receive additional data through a void pointer passed to the `u
 #include <emscripten_browser_file.h>
 #include <iostream>
 
-void handle_upload_file(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
+void handle_upload_file(std::string const &filename, std::string const &mime_type, emscripten_browser_file::buffer_unique_ptr &&buffer, size_t buffer_size, void *callback_data) {
   // define a handler to process the file
-  auto my_data{*reintrepret_cast<std::string*>(my_data)};
+  auto &my_data = *reinterpret_cast<std::string*>(callback_data);
   std::cout << "Received callback data: " << my_data << std::endl;
 }
 
 auto main()->int {
   std::string my_data{"hello world"};
-  auto my_data_ptr{reintrepret_cast<void*>(&my_data)};
+  auto my_data_ptr{reinterpret_cast<void*>(&my_data)};
 
   // pass callback data to the handler
   emscripten_browser_file::upload(".png,.jpg,.jpeg", handle_upload_file, my_data_ptr);
