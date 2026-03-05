@@ -106,7 +106,7 @@ EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void 
   a.click();
   URL.revokeObjectURL(a.href);
 });
-#endif
+#endif // __EMSCRIPTEN_PTHREADS__
 #pragma GCC diagnostic pop
 
 inline void download(std::string const &filename, std::string const &mime_type, std::string_view buffer) {
