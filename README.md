@@ -44,8 +44,6 @@ emscripten_browser_file::download(
 ) {
 ```
 
-`download` also has an override accepting `std::string` instead of `char const*`.
-
 For files containing binary data, you will usually want to use the MIME type `application/octet-stream`.
 
 ### Upload
@@ -71,12 +69,11 @@ auto main()->int {
 The upload call takes the following arguments:
 ```cpp
   emscripten_browser_file::upload(
-    char const *accept_types,       // an "accept" attribute, listing what file types can be accepted - see: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers 
-    upload_handler callback,        // a callback function to call with the received data
-    void *callback_data = nullptr,  // optional pointer to pass to your callback function
+    std::string const &accept_types, // an "accept" attribute, listing what file types can be accepted - see: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers
+    upload_handler callback,         // a callback function to call with the received data
+    void *callback_data = nullptr    // optional pointer to pass to your callback function
   );
 ```
-`upload` also has an override accepting `std::string` instead of `char const*`.
 
 The callback must have the following signature:
 
@@ -99,13 +96,13 @@ The callback can receive additional data through a void pointer passed to the `u
 
 void handle_upload_file(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
   // define a handler to process the file
-  auto my_data{*reintrepret_cast<std::string*>(my_data)};
+  auto my_data{*reinterpret_cast<std::string*>(callback_data)};
   std::cout << "Received callback data: " << my_data << std::endl;
 }
 
 auto main()->int {
   std::string my_data{"hello world"};
-  auto my_data_ptr{reintrepret_cast<void*>(&my_data)};
+  auto my_data_ptr{reinterpret_cast<void*>(&my_data)};
 
   // pass callback data to the handler
   emscripten_browser_file::upload(".png,.jpg,.jpeg", handle_upload_file, my_data_ptr);
@@ -117,7 +114,7 @@ You can use this to pass shared state, or any other data to the callback functio
 
 ## Building
 
-Necessary emsripten link flags:
+Necessary emscripten link flags:
 
 - Building with emscripten will require you to pass, if you do not already do so, `-sEXPORTED_RUNTIME_METHODS=[ccall,HEAPU8]` and `-sEXPORTED_FUNCTIONS=[_main,_malloc,_free]` at the link stage.
 - This uses dynamic memory allocation, so you need `-sALLOW_MEMORY_GROWTH=1` at the link stage.

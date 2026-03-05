@@ -90,8 +90,11 @@ EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void 
   /// Offer a buffer in memory as a file to download, specifying download filename and mime type
   var a = document.createElement('a');
   a.download = UTF8ToString(filename);
-  a.href = URL.createObjectURL(new Blob([new Uint8Array(Module["HEAPU8"].buffer, buffer, buffer_size)], {type: UTF8ToString(mime_type)}));
+  /// Use HEAPU8.slice() to copy the data into a new non-shared ArrayBuffer.
+  /// This avoids a TypeError when building with -pthread (SharedArrayBuffer cannot be passed to Blob).
+  a.href = URL.createObjectURL(new Blob([Module["HEAPU8"].slice(buffer, buffer + buffer_size)], {type: UTF8ToString(mime_type)}));
   a.click();
+  URL.revokeObjectURL(a.href);
 });
 #pragma GCC diagnostic pop
 
