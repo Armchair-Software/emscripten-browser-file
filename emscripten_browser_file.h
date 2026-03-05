@@ -122,7 +122,7 @@ EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char co
   /// <The behavior is undefined if [s, s + count) is not a valid range
   /// (even though the constructor may not access any of the elements of this range)>
   /// https://en.cppreference.com/w/cpp/string/basic_string_view/basic_string_view
-  if (! buffer || buffer_size == 0) {
+  if(!buffer || buffer_size == 0) {
     callback(filename, mime_type, std::string_view(), callback_data);
     return 1;
   }
