@@ -84,8 +84,9 @@ The callback must have the following signature:
   void handle_upload_file(
     std::string const &filename,  // the filename of the file the user selected
     std::string const &mime_type, // the MIME type of the file the user selected, for example "image/png"
-    std::string_view buffer,      // the file's content is exposed in this string_view - access the data with buffer.data() and size with buffer.size().
-    void *callback_data = nullptr // optional callback data - identical to whatever you passed to handle_upload_file()
+    std::string_view buffer,      // the file's content is exposed in this string_view - access the data with buffer.data() and size with buffer.size()
+                                  // Note: this string_view is only valid for the duration of the callback - do not store it for later use
+    void *callback_data = nullptr // optional callback data - identical to whatever you passed to emscripten_browser_file::upload()
   );
 ```
 
@@ -99,13 +100,13 @@ The callback can receive additional data through a void pointer passed to the `u
 
 void handle_upload_file(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
   // define a handler to process the file
-  auto my_data{*reintrepret_cast<std::string*>(my_data)};
+  auto &my_data{*reinterpret_cast<std::string*>(callback_data)};
   std::cout << "Received callback data: " << my_data << std::endl;
 }
 
 auto main()->int {
   std::string my_data{"hello world"};
-  auto my_data_ptr{reintrepret_cast<void*>(&my_data)};
+  auto my_data_ptr{reinterpret_cast<void*>(&my_data)};
 
   // pass callback data to the handler
   emscripten_browser_file::upload(".png,.jpg,.jpeg", handle_upload_file, my_data_ptr);
