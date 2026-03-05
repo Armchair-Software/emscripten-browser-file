@@ -91,8 +91,8 @@ EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void 
   var a = document.createElement('a');
   a.download = UTF8ToString(filename);
   /// When HEAPU8 is backed by a SharedArrayBuffer (e.g. -pthread builds), the Blob constructor rejects it;
-  /// slice() copies to a plain ArrayBuffer first.  The typeof guard avoids a ReferenceError in environments
-  /// where SharedArrayBuffer is not defined.
+  /// slice() copies to a new non-shared ArrayBuffer first.  The typeof guard avoids a ReferenceError in
+  /// environments where SharedArrayBuffer is not defined.
   var buffer_data = (typeof SharedArrayBuffer !== 'undefined' && Module["HEAPU8"].buffer instanceof SharedArrayBuffer)
     ? Module["HEAPU8"].slice(buffer, buffer + buffer_size)
     : new Uint8Array(Module["HEAPU8"].buffer, buffer, buffer_size);
