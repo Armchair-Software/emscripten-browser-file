@@ -100,7 +100,7 @@ The callback can receive additional data through a void pointer passed to the `u
 
 void handle_upload_file(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data) {
   // define a handler to process the file
-  auto &my_data = *reinterpret_cast<std::string*>(callback_data);
+  auto &my_data{*reinterpret_cast<std::string*>(callback_data)};
   std::cout << "Received callback data: " << my_data << std::endl;
 }
 
