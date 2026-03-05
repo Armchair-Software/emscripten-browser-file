@@ -90,7 +90,7 @@ inline void upload(std::string const &accept_types, upload_handler callback, voi
 EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void const *buffer, size_t buffer_size), {
   /// Offer a buffer in memory as a file to download, specifying download filename and mime type
   /// When building with -pthread, HEAPU8.buffer is a SharedArrayBuffer, which cannot be passed to
-  /// the Blob constructor directly.  Use slice() to copy into a plain ArrayBuffer first.
+  /// the Blob constructor directly.  Use slice() to obtain a Uint8Array backed by a new non-shared ArrayBuffer first.
   var a = document.createElement('a');
   a.download = UTF8ToString(filename);
   a.href = URL.createObjectURL(new Blob([Module["HEAPU8"].slice(buffer, buffer + buffer_size)], {type: UTF8ToString(mime_type)}));
