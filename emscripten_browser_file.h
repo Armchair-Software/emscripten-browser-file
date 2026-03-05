@@ -32,6 +32,7 @@ EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, v
   /// Accept-types are in the format ".png,.jpeg,.jpg" as per https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/accept
   /// Upload handler callback signature is:
   ///   void my_handler(std::string const &filename, std::string const &mime_type, std::string_view buffer, void *callback_data = nullptr);
+  ///   Note: the string_view buffer is only valid for the duration of the callback - do not store it for later use.
   globalThis["open_file"] = function(e) {
     const file_reader = new FileReader();
     file_reader.onload = (event) => {
@@ -125,7 +126,7 @@ EMSCRIPTEN_KEEPALIVE inline int upload_file_return(char const *filename, char co
     callback(filename, mime_type, std::string_view(), callback_data);
     return 1;
   }
-  /// Ok
+  /// Ok - note: the string_view is only valid for the duration of this call; do not store it for later use
   callback(filename, mime_type, {buffer, buffer_size}, callback_data);
   return 1;
 }
