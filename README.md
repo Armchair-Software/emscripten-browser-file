@@ -86,7 +86,7 @@ The callback must have the following signature:
     std::string const &mime_type, // the MIME type of the file the user selected, for example "image/png"
     std::string_view buffer,      // the file's content is exposed in this string_view - access the data with buffer.data() and size with buffer.size()
                                   // Note: this string_view is only valid for the duration of the callback - do not store it for later use
-    void *callback_data = nullptr // optional callback data - identical to whatever you passed to handle_upload_file()
+    void *callback_data = nullptr // optional callback data - identical to whatever you passed to emscripten_browser_file::upload()
   );
 ```
 
