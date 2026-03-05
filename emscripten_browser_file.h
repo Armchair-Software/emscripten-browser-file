@@ -86,16 +86,27 @@ inline void upload(std::string const &accept_types, upload_handler callback, voi
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-variable-declarations"
+#ifdef __EMSCRIPTEN_PTHREADS__
 EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void const *buffer, size_t buffer_size), {
   /// Offer a buffer in memory as a file to download, specifying download filename and mime type
+  /// When building with -pthread, HEAPU8.buffer is a SharedArrayBuffer, which cannot be passed to
+  /// the Blob constructor directly.  Use slice() to copy into a plain ArrayBuffer first.
   var a = document.createElement('a');
   a.download = UTF8ToString(filename);
-  /// Use HEAPU8.slice() to copy the data into a new non-shared ArrayBuffer.
-  /// This avoids a TypeError when building with -pthread (SharedArrayBuffer cannot be passed to Blob).
   a.href = URL.createObjectURL(new Blob([Module["HEAPU8"].slice(buffer, buffer + buffer_size)], {type: UTF8ToString(mime_type)}));
   a.click();
   URL.revokeObjectURL(a.href);
 });
+#else
+EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void const *buffer, size_t buffer_size), {
+  /// Offer a buffer in memory as a file to download, specifying download filename and mime type
+  var a = document.createElement('a');
+  a.download = UTF8ToString(filename);
+  a.href = URL.createObjectURL(new Blob([new Uint8Array(Module["HEAPU8"].buffer, buffer, buffer_size)], {type: UTF8ToString(mime_type)}));
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+#endif
 #pragma GCC diagnostic pop
 
 inline void download(std::string const &filename, std::string const &mime_type, std::string_view buffer) {
