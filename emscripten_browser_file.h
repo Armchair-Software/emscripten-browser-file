@@ -37,11 +37,11 @@ EM_JS_INLINE(void, upload, (char const *accept_types, upload_handler callback, v
     const file_reader = new FileReader();
     file_reader.onload = (event) => {
       const uint8Arr = new Uint8Array(event.target.result);
-      const data_ptr = Module["_malloc"](uint8Arr.length);
-      const data_on_heap = new Uint8Array(Module["HEAPU8"].buffer, data_ptr, uint8Arr.length);
+      const data_ptr = _malloc(uint8Arr.length);
+      const data_on_heap = new Uint8Array(HEAPU8.buffer, data_ptr, uint8Arr.length);
       data_on_heap.set(uint8Arr);
       Module["ccall"]('upload_file_return', 'number', ['string', 'string', 'number', 'number', 'number', 'number'], [event.target.filename, event.target.mime_type, data_on_heap.byteOffset, uint8Arr.length, callback, callback_data]);
-      Module["_free"](data_ptr);
+      _free(data_ptr);
     };
     file_reader.filename = e.target.files[0].name;
     file_reader.mime_type = e.target.files[0].type;
@@ -94,9 +94,9 @@ EM_JS_INLINE(void, download, (char const *filename, char const *mime_type, void 
   /// When HEAPU8 is backed by a SharedArrayBuffer (e.g. -pthread builds), the Blob constructor rejects it;
   /// slice() copies to a new non-shared ArrayBuffer first.  The typeof guard avoids a ReferenceError in
   /// environments where SharedArrayBuffer is not defined.
-  var buffer_data = (typeof SharedArrayBuffer !== 'undefined' && Module["HEAPU8"].buffer instanceof SharedArrayBuffer)
-    ? Module["HEAPU8"].slice(buffer, buffer + buffer_size)
-    : new Uint8Array(Module["HEAPU8"].buffer, buffer, buffer_size);
+  var buffer_data = (typeof SharedArrayBuffer !== 'undefined' && HEAPU8.buffer instanceof SharedArrayBuffer)
+    ? HEAPU8.slice(buffer, buffer + buffer_size)
+    : new Uint8Array(HEAPU8.buffer, buffer, buffer_size);
   a.href = URL.createObjectURL(new Blob([buffer_data], {type: UTF8ToString(mime_type)}));
   a.click();
   URL.revokeObjectURL(a.href);
